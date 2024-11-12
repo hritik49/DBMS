@@ -1,0 +1,32 @@
+// Insert sample values into the City collection
+db.City.insertMany([
+  { cityname: "CityA", area: 200, population: 500000 },
+  { cityname: "CityB", area: 350, population: 1200000 },
+  { cityname: "CityC", area: 150, population: 800000 },
+  { cityname: "CityD", area: 400, population: 2500000 },
+  { cityname: "CityE", area: 300, population: 600000 }
+]);
+
+// Map function to categorize cities based on their population
+function map() {
+  if (this.population > 1000000) {
+    emit("HIGHLY POPULATED", 1);
+  } else {
+    emit("LOW POPULATED", 1);
+  }
+}
+
+// Reduce function to count the number of cities in each category
+function reduce(key, values) {
+  return Array.sum(values);
+}
+
+// Execute the MapReduce function
+db.City.mapReduce(
+  map,
+  reduce,
+  { out: "population_categories" }
+);
+
+// Display the results
+db.population_categories.find();

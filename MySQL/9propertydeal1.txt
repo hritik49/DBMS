@@ -1,0 +1,128 @@
+-- Create the database
+CREATE DATABASE propertydealers;
+
+-- Use the database
+USE propertydealers;
+
+-- Create Branch table
+CREATE TABLE Branch (
+    branchno INT PRIMARY KEY,
+    street VARCHAR(255),
+    city VARCHAR(100),
+    postcode VARCHAR(10)
+);
+
+-- Create Staff table
+CREATE TABLE Staff (
+    staffno INT PRIMARY KEY,
+    fname VARCHAR(100),
+    lname VARCHAR(100),
+    position VARCHAR(50),
+    sex CHAR(1),
+    DOB DATE,
+    salary DECIMAL(10, 2),
+    branchno INT,
+    FOREIGN KEY (branchno) REFERENCES Branch(branchno)
+);
+
+-- Create PropertyforRent table
+CREATE TABLE PropertyforRent (
+    propertyNo INT PRIMARY KEY,
+    street VARCHAR(255),
+    city VARCHAR(100),
+    postcode VARCHAR(10),
+    type VARCHAR(50),
+    rooms INT,
+    rent DECIMAL(10, 2),
+    ownerno INT,
+    staffno INT,
+    branchno INT,
+    FOREIGN KEY (staffno) REFERENCES Staff(staffno),
+    FOREIGN KEY (branchno) REFERENCES Branch(branchno) ON DELETE RESTRICT -- prevents deletion if referenced
+);
+
+-- Create Client table
+CREATE TABLE Client (
+    CUID INT PRIMARY KEY,
+    fName VARCHAR(100),
+    lName VARCHAR(100),
+    Rent DECIMAL(10, 2)
+);
+
+-- Create PrivateOwner table
+CREATE TABLE PrivateOwner (
+    OUID INT PRIMARY KEY,
+    fName VARCHAR(100),
+    lName VARCHAR(100),
+    address VARCHAR(255)
+);
+
+-- Insert into Branch table
+INSERT INTO Branch (branchno, street, city, postcode) VALUES
+(1, 'Main St', 'Pune', '411001'),
+(2, 'MG Road', 'Mumbai', '411002'),
+(3, 'Park Lane', 'Delhi', '411041'),
+(4, 'Broadway', 'Bangalore', '560001'),
+(5, 'Link Rd', 'Chennai', '600041');
+
+-- Insert into Staff table
+INSERT INTO Staff (staffno, fname, lname, position, sex, DOB, salary, branchno) VALUES
+(101, 'John', 'Doe', 'Manager', 'M', '1985-01-10', 50000, 1),
+(102, 'Jane', 'Smith', 'Sales', 'F', '1990-03-15', 40000, 2),
+(103, 'Alan', 'Rogers', 'Clerk', 'M', '1992-05-20', 35000, 3),
+(104, 'Alice', 'Johnson', 'Manager', 'F', '1988-07-19', 52000, 1),
+(106, 'Brian', 'Brown', 'Assistant', 'M', '1995-02-23', 28000, 4);
+
+-- Insert into PropertyforRent table
+INSERT INTO PropertyforRent (propertyNo, street, city, postcode, type, rooms, rent, ownerno, staffno, branchno) VALUES
+(201, 'Rose St', 'Pune', '411001', 'Flat', 3, 25000, 301, 101, 1),
+(202, 'Lake View', 'Mumbai', '411002', 'Villa', 5, 75000, 302, 102, 2),
+(203, 'Hill Rd', 'Delhi', '411041', 'Flat', 2, 20000, 303, 103, 3),
+(204, 'Sunset Blvd', 'Bangalore', '560001', 'Bungalow', 4, 55000, 304, 104, 4),
+(205, 'River Rd', 'Chennai', '600041', 'Apartment', 3, 30000, 305, 106, 5);
+
+-- Insert into Client table
+INSERT INTO Client (CUID, fName, lName, Rent) VALUES
+(401, 'Tom', 'Hanks', 25000),
+(402, 'Sally', 'Field', 75000),
+(403, 'Daniel', 'Craig', 20000),
+(404, 'Morgan', 'Freeman', 55000),
+(405, 'Emma', 'Stone', 30000);
+
+-- Insert into PrivateOwner table
+INSERT INTO PrivateOwner (OUID, fName, lName, address) VALUES
+(301, 'James', 'Smith', '23 Rose St, Pune'),
+(302, 'Emma', 'Jones', '56 Lake View, Mumbai'),
+(303, 'Alice', 'Brown', '78 Hill Rd, Delhi'),
+(304, 'Daniel', 'White', '101 Sunset Blvd, Bangalore'),
+(305, 'Tom', 'Stone', '12 River Rd, Chennai');
+
+UPDATE Staff
+SET lname = 'Shinde'
+WHERE staffno = 106;
+
+DELETE FROM PropertyforRent WHERE branchno = (SELECT branchno FROM Branch WHERE postcode = '411041');
+-- Now, delete the branch
+DELETE FROM Branch WHERE postcode = '411041';
+
+SELECT *
+FROM Staff
+WHERE (fname LIKE '%a%a%') OR (lname LIKE '%a%a%');
+
+SELECT branchno, MAX(salary) AS max_salary
+FROM Staff
+GROUP BY branchno
+ORDER BY max_salary DESC;
+
+SELECT c.CUID, c.fName, c.lName
+FROM Client c
+INNER JOIN PrivateOwner p ON c.fName = p.fName AND c.lName = p.lName;
+
+SELECT p.OUID, p.fName, p.lName
+FROM PrivateOwner p
+LEFT JOIN Client c ON p.fName = c.fName AND p.lName = c.lName
+WHERE c.CUID IS NULL;
+
+SELECT *
+FROM PrivateOwner
+WHERE SUBSTRING(fName, 3, 1) = 'C';

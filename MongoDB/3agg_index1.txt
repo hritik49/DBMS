@@ -1,0 +1,42 @@
+db.student.insertMany([
+  { Rollno: 1, Name: "Aarav Kumar", Class: "TE", Div: "A", Subject: "TOC", Marks: 80, Address: { City: "Pune" } },
+  { Rollno: 2, Name: "Bhakti Patel", Class: "TE", Div: "B", Subject: "DBMS", Marks: 55, Address: { City: "Mumbai" } },
+  { Rollno: 3, Name: "Rohan Jadhav", Class: "TE", Div: "A", Subject: "SPOS", Marks: 70, Address: { City: "Pune" } },
+  { Rollno: 4, Name: "Ananya Rao", Class: "TE", Div: "B", Subject: "DBMS", Marks: 40, Address: { City: "Bangalore" } },
+  { Rollno: 5, Name: "Ishaan Joshi", Class: "TE", Div: "C", Subject: "TOC", Marks: 90, Address: { City: "Pune" } },
+  { Rollno: 6, Name: "Arya Kapoor", Class: "TE", Div: "B", Subject: "SPOS", Marks: 85, Address: { City: "Pune" } },
+  { Rollno: 7, Name: "Maya Iyer", Class: "TE", Div: "A", Subject: "DBMS", Marks: 75, Address: { City: "Chennai" } }
+]);
+
+db.student.aggregate([
+  { $match: { Subject: "TOC" } },
+  { $group: { _id: null, avgMarks: { $avg: "$Marks" } } }
+]);
+
+db.student.aggregate([
+  { $group: { _id: "$Div", count: { $sum: 1 } } }
+]);
+
+db.student.aggregate([
+  { $match: { Div: "B", Subject: "DBMS" } },
+  { $group: { _id: null, minMarks: { $min: "$Marks" }, students: { $push: "$$ROOT" } } },
+  { $project: { _id: 0, minMarks: 1, students: { $filter: { input: "$students", as: "student", cond: { $eq: ["$$student.Marks", "$minMarks"] } } } } }
+]);
+
+db.student.aggregate([
+  { $match: { Subject: "SPOS", "Address.City": "Pune" } },
+  { $group: { _id: null, totalMarks: { $sum: "$Marks" } } }
+]);
+
+db.student.aggregate([
+  { $match: { Subject: "DBMS" } },
+  { $group: { _id: "$Div", count: { $sum: 1 } } }
+]);
+
+db.student.aggregate([
+  { $group: { _id: "$Address.City", count: { $sum: 1 } } }
+]);
+
+db.student.createIndex({ Name: 1 });
+
+db.student.createIndex({ Div: 1, Subject: 1 });

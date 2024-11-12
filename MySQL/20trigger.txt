@@ -1,0 +1,72 @@
+-- 1. Create the Library table (for demonstration, if not already created)
+DROP TABLE IF EXISTS Library;
+CREATE TABLE Library (
+    BookID INT PRIMARY KEY,
+    BookTitle VARCHAR(255),
+    Author VARCHAR(100),
+    YearPublished INT,
+    Genre VARCHAR(50)
+);
+
+-- Insert some sample data into Library (optional)
+INSERT INTO Library (BookID, BookTitle, Author, YearPublished, Genre)
+VALUES 
+(1, 'The Alchemist', 'Paulo Coelho', 1988, 'Fiction'),
+(2, 'To Kill a Mockingbird', 'Harper Lee', 1960, 'Classic'),
+(3, '1984', 'George Orwell', 1949, 'Dystopian');
+
+COMMIT;
+
+-- 2. Create the Library_Audit table to track changes
+DROP TABLE IF EXISTS Library_Audit;
+CREATE TABLE Library_Audit (
+    AuditID INT PRIMARY KEY AUTO_INCREMENT,
+    BookID INT,
+    OldBookTitle VARCHAR(255),
+    OldAuthor VARCHAR(100),
+    OldYearPublished INT,
+    OldGenre VARCHAR(50),
+    ActionType VARCHAR(10), -- 'UPDATE' or 'DELETE'
+    ActionDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 3. Create a BEFORE UPDATE trigger on Library table
+DELIMITER $$
+
+CREATE TRIGGER before_library_update
+BEFORE UPDATE ON Library
+FOR EACH ROW
+BEGIN
+    -- Insert old values into Library_Audit table before update
+    INSERT INTO Library_Audit (BookID, OldBookTitle, OldAuthor, OldYearPublished, OldGenre, ActionType)
+    VALUES (OLD.BookID, OLD.BookTitle, OLD.Author, OLD.YearPublished, OLD.Genre, 'UPDATE');
+END$$
+
+DELIMITER ;
+
+-- 4. Create a BEFORE DELETE trigger on Library table
+DELIMITER $$
+
+CREATE TRIGGER before_library_delete
+BEFORE DELETE ON Library
+FOR EACH ROW
+BEGIN
+    -- Insert old values into Library_Audit table before deletion
+    INSERT INTO Library_Audit (BookID, OldBookTitle, OldAuthor, OldYearPublished, OldGenre, ActionType)
+    VALUES (OLD.BookID, OLD.BookTitle, OLD.Author, OLD.YearPublished, OLD.Genre, 'DELETE');
+END$$
+
+DELIMITER ;
+
+-- 5. Test the triggers
+-- Update a record in the Library table
+UPDATE Library
+SET Author = 'Paulo C.'
+WHERE BookID = 1;
+
+-- Delete a record from the Library table
+DELETE FROM Library
+WHERE BookID = 2;
+
+-- 6. View the contents of the Library_Audit table to see the changes tracked
+SELECT * FROM Library_Audit;

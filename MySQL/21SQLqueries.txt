@@ -1,0 +1,115 @@
+-- Drop existing tables if they exist for a fresh start
+DROP TABLE IF EXISTS Borrowers;
+DROP TABLE IF EXISTS Books;
+DROP TABLE IF EXISTS Authors;
+
+-- Create Authors table
+CREATE TABLE Authors (
+    AuthorID INT PRIMARY KEY AUTO_INCREMENT,
+    AuthorName VARCHAR(100),
+    Country VARCHAR(50)
+);
+
+-- Create Books table
+CREATE TABLE Books (
+    BookID INT PRIMARY KEY AUTO_INCREMENT,
+    Title VARCHAR(255),
+    AuthorID INT,
+    Genre VARCHAR(50),
+    Price DECIMAL(10, 2),
+    FOREIGN KEY (AuthorID) REFERENCES Authors(AuthorID)
+);
+
+-- Create Borrowers table
+CREATE TABLE Borrowers (
+    BorrowerID INT PRIMARY KEY AUTO_INCREMENT,
+    BorrowerName VARCHAR(100),
+    BookID INT,
+    BorrowDate DATE,
+    FOREIGN KEY (BookID) REFERENCES Books(BookID)
+);
+
+-- Insert sample data into Authors table
+INSERT INTO Authors (AuthorName, Country) VALUES
+('George Orwell', 'UK'),
+('Harper Lee', 'USA'),
+('J.K. Rowling', 'UK');
+
+-- Insert sample data into Books table
+INSERT INTO Books (Title, AuthorID, Genre, Price) VALUES
+('1984', 1, 'Dystopian', 15.50),
+('Animal Farm', 1, 'Satire', 12.00),
+('To Kill a Mockingbird', 2, 'Fiction', 18.00),
+('Harry Potter and the Sorcerer''s Stone', 3, 'Fantasy', 20.00);
+
+-- Insert sample data into Borrowers table
+INSERT INTO Borrowers (BorrowerName, BookID, BorrowDate) VALUES
+('Alice Johnson', 1, '2024-01-10'),
+('Bob Brown', 3, '2024-02-15'),
+('Charlie White', 4, '2024-03-20');
+
+-- 1. Inner Join - List all books along with their author's name
+SELECT Books.Title, Authors.AuthorName, Books.Genre, Books.Price
+FROM Books
+INNER JOIN Authors ON Books.AuthorID = Authors.AuthorID;
+
+-- 2. Left Join - List all authors and their books (including authors without any books)
+SELECT Authors.AuthorName, Books.Title
+FROM Authors
+LEFT JOIN Books ON Authors.AuthorID = Books.AuthorID;
+
+-- 3. Right Join - List all books and their authors (including books without an author)
+SELECT Books.Title, Authors.AuthorName
+FROM Books
+RIGHT JOIN Authors ON Books.AuthorID = Authors.AuthorID;
+
+-- 4. Full Outer Join (using UNION since MySQL doesn't support it directly)
+SELECT Authors.AuthorName, Books.Title
+FROM Authors
+LEFT JOIN Books ON Authors.AuthorID = Books.AuthorID
+UNION
+SELECT Authors.AuthorName, Books.Title
+FROM Authors
+RIGHT JOIN Books ON Authors.AuthorID = Books.AuthorID;
+
+-- 7. Subquery (with IN) - List borrowers who borrowed books authored by 'George Orwell'
+SELECT BorrowerName
+FROM Borrowers
+WHERE BookID IN (
+    SELECT BookID
+    FROM Books
+    WHERE AuthorID = (SELECT AuthorID FROM Authors WHERE AuthorName = 'George Orwell')
+);
+
+-- 8. Subquery (with EXISTS) - List authors who have at least one book in the library
+SELECT AuthorName
+FROM Authors
+WHERE EXISTS (
+    SELECT 1
+    FROM Books
+    WHERE Books.AuthorID = Authors.AuthorID
+);
+
+-- 9. View Creation - Create a view to list books along with their borrower (if any)
+CREATE VIEW BookBorrowerView AS
+SELECT Books.Title, Borrowers.BorrowerName, Borrowers.BorrowDate
+FROM Books
+LEFT JOIN Borrowers ON Books.BookID = Borrowers.BookID;
+
+-- Query the view
+SELECT * FROM BookBorrowerView;
+
+-- 10. Updating Records (DML) - Increase the price of books in the 'Fantasy' genre by 10%
+UPDATE Books
+SET Price = Price * 1.10
+WHERE Genre = 'Fantasy';
+
+-- Check the updated prices
+SELECT * FROM Books;
+
+-- 11. Deleting Records (DML) - Delete a borrower record
+DELETE FROM Borrowers
+WHERE BorrowerName = 'Alice Johnson';
+
+-- Verify deletion
+SELECT * FROM Borrowers;

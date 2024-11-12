@@ -1,0 +1,59 @@
+// Insert sample values
+db.students.insertMany([{_id:1,name:"Alice Johnson",marks:{DBMS:85,Math:78,OS:69}},{_id:2,name:"Bob Smith",marks:{DBMS:45,Math:55,OS:62}},{_id:3,name:"Carol Lee",marks:{DBMS:33,Math:40,OS:48}},{_id:4,name:"David Brown",marks:{DBMS:72,Math:80,OS:77}},{_id:5,name:"Eve Davis",marks:{DBMS:58,Math:66,OS:53}}]);
+
+// Map function to categorize students based on DBMS scores
+function map() {
+  const dbmsScore = this.marks.DBMS;
+  if (dbmsScore > 70) {
+    emit("Highscores", 1);
+  } else if (dbmsScore > 40) {
+    emit("Average scores", 1);
+  } else {
+    emit("Failed", 1);
+  }
+}
+
+// Reduce function to count the number of students in each category
+function reduce(key, values) {
+  return Array.sum(values);
+}
+
+// Execute the MapReduce function
+db.students.mapReduce(
+  map,
+  reduce,
+  { out: "score_categories" }
+);
+
+// Display the results
+db.score_categories.find();
+
+// Additional MapReduce to count students scoring above 60 in all subjects
+function mapAbove60() {
+  const scores = this.marks;
+  let allAbove60 = true;
+  for (let subject in scores) {
+    if (scores[subject] <= 60) {
+      allAbove60 = false;
+      break;
+    }
+  }
+  if (allAbove60) {
+    emit("Above 60 in All Subjects", 1);
+  }
+}
+
+// Reduce function for counting students
+function reduceAbove60(key, values) {
+  return Array.sum(values);
+}
+
+// Execute the second MapReduce function
+db.students.mapReduce(
+  mapAbove60,
+  reduceAbove60,
+  { out: "above_60_all_subjects" }
+);
+
+// Display the results for students scoring above 60 in all subjects
+db.above_60_all_subjects.find();

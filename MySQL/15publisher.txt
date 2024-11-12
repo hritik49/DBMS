@@ -1,0 +1,113 @@
+-- Create the `PUBLISHER` table
+CREATE TABLE PUBLISHER (
+    PID INT PRIMARY KEY,
+    PNAME VARCHAR(50),
+    ADDRESS VARCHAR(100),
+    STATE VARCHAR(50),
+    PHONE VARCHAR(20),
+    EMAILID VARCHAR(50)
+);
+
+-- Create the `BOOK` table
+CREATE TABLE BOOK (
+    ISBN INT PRIMARY KEY,
+    BOOK_TITLE VARCHAR(100),
+    CATEGORY VARCHAR(50),
+    PRICE DECIMAL(10, 2),
+    COPYRIGHT_DATE DATE,
+    YEAR INT,
+    PAGE_COUNT INT,
+    PID INT,
+    FOREIGN KEY (PID) REFERENCES PUBLISHER(PID)
+);
+
+-- Create the `AUTHOR` table
+CREATE TABLE AUTHOR (
+    AID INT PRIMARY KEY,
+    ANAME VARCHAR(50),
+    STATE VARCHAR(50),
+    CITY VARCHAR(50),
+    ZIP VARCHAR(10),
+    PHONE VARCHAR(20),
+    URL VARCHAR(100)
+);
+
+-- Create the `AUTHOR_BOOK` table
+CREATE TABLE AUTHOR_BOOK (
+    AID INT,
+    ISBN INT,
+    FOREIGN KEY (AID) REFERENCES AUTHOR(AID),
+    FOREIGN KEY (ISBN) REFERENCES BOOK(ISBN),
+    PRIMARY KEY (AID, ISBN)
+);
+
+-- Create the `REVIEW` table
+CREATE TABLE REVIEW (
+    RID INT PRIMARY KEY,
+    ISBN INT,
+    RATING INT,
+    FOREIGN KEY (ISBN) REFERENCES BOOK(ISBN)
+);
+
+-- Insert data into `PUBLISHER`
+INSERT INTO PUBLISHER (PID, PNAME, ADDRESS, STATE, PHONE, EMAILID) VALUES
+(1, 'MEHTA', '123 Street', 'Maharashtra', '9876543210', 'mehta@example.com'),
+(2, 'PENGUIN', '456 Avenue', 'Delhi', '8765432109', 'penguin@example.com');
+
+-- Insert data into `BOOK`
+INSERT INTO BOOK (ISBN, BOOK_TITLE, CATEGORY, PRICE, COPYRIGHT_DATE, YEAR, PAGE_COUNT, PID) VALUES
+(101, 'Book1', 'Fiction', 500.00, '2020-05-20', 2020, 150, 1),
+(102, 'Book2', 'Science', 1200.00, '2018-03-15', 2018, 200, 2),
+(103, 'Book3', 'Fiction', 800.00, '2019-09-12', 2019, 90, 1);
+
+-- Insert data into `AUTHOR`
+INSERT INTO AUTHOR (AID, ANAME, STATE, CITY, ZIP, PHONE, URL) VALUES
+(1, 'Chetan Bhagat', 'Maharashtra', 'Mumbai', '400001', '9999999999', 'www.chetanbhagat.com'),
+(2, 'Korth', 'Maharashtra', 'Pune', '411001', '8888888888', 'www.korth.com'),
+(3, 'Catherine', 'Maharashtra', 'Pune', '411002', '7777777777', 'www.catherine.com');
+
+-- Insert data into `AUTHOR_BOOK`
+INSERT INTO AUTHOR_BOOK (AID, ISBN) VALUES
+(1, 101),
+(2, 102),
+(3, 103);
+
+-- Insert data into `REVIEW`
+INSERT INTO REVIEW (RID, ISBN, RATING) VALUES
+(1, 101, 4),
+(2, 102, 5),
+(3, 103, 3);
+
+-- Retrieve city, phone, and URL of the author whose name is 'CHETAN BHAGAT'.
+SELECT CITY, PHONE, URL FROM AUTHOR WHERE ANAME = 'Chetan Bhagat';
+
+-- Retrieve book title, review ID, and rating of all books.
+SELECT BOOK.BOOK_TITLE, REVIEW.RID, REVIEW.RATING
+FROM BOOK
+JOIN REVIEW ON BOOK.ISBN = REVIEW.ISBN;
+
+-- Retrieve book title, price, author name, and URL for books by publishers 'MEHTA'.
+SELECT BOOK.BOOK_TITLE, BOOK.PRICE, AUTHOR.ANAME, AUTHOR.URL
+FROM BOOK
+JOIN PUBLISHER ON BOOK.PID = PUBLISHER.PID
+JOIN AUTHOR_BOOK ON BOOK.ISBN = AUTHOR_BOOK.ISBN
+JOIN AUTHOR ON AUTHOR_BOOK.AID = AUTHOR.AID
+WHERE PUBLISHER.PNAME = 'MEHTA';
+
+-- In the PUBLISHER table, change the phone number of 'MEHTA' to 123456.
+UPDATE PUBLISHER SET PHONE = '123456' WHERE PNAME = 'MEHTA';
+
+-- Calculate and display the average, maximum, and minimum price of each publisher.
+SELECT PUBLISHER.PNAME, AVG(BOOK.PRICE) AS avg_price, MAX(BOOK.PRICE) AS max_price, MIN(BOOK.PRICE) AS min_price
+FROM BOOK
+JOIN PUBLISHER ON BOOK.PID = PUBLISHER.PID
+GROUP BY PUBLISHER.PNAME;
+
+-- Delete details of all books having a page count less than 100.
+DELETE FROM BOOK WHERE PAGE_COUNT < 100;
+
+-- Retrieve details of all authors residing in the city 'Pune' and whose name begins with the character 'C'.
+SELECT * FROM AUTHOR WHERE CITY = 'Pune' AND ANAME LIKE 'C%';
+
+-- Retrieve details of authors residing in the same city as 'Korth'.
+SELECT * FROM AUTHOR WHERE CITY = (SELECT CITY FROM AUTHOR WHERE ANAME = 'Korth');

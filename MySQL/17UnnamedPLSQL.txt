@@ -1,0 +1,99 @@
+-- Create Borrower table
+CREATE TABLE Borrower (
+    Roll_no NUMBER PRIMARY KEY,
+    Name VARCHAR2(100),
+    DateofIssue DATE,
+    NameofBook VARCHAR2(100),
+    Status CHAR(1) -- 'I' for Issued, 'R' for Returned
+);
+
+-- Create Fine table
+CREATE TABLE Fine (
+    Roll_no NUMBER,
+    Date DATE,
+    Amt NUMBER
+);
+
+-- Insert values into Borrower table
+INSERT INTO Borrower (Roll_no, Name, DateofIssue, NameofBook, Status)
+VALUES (101, 'John Doe', TO_DATE('2024-08-01', 'YYYY-MM-DD'), 'Introduction to DBMS', 'I');
+
+INSERT INTO Borrower (Roll_no, Name, DateofIssue, NameofBook, Status)
+VALUES (102, 'Mary Smith', TO_DATE('2024-07-10', 'YYYY-MM-DD'), 'Advanced Java', 'I');
+
+INSERT INTO Borrower (Roll_no, Name, DateofIssue, NameofBook, Status)
+VALUES (103, 'Peter Brown', TO_DATE('2024-06-25', 'YYYY-MM-DD'), 'Data Structures', 'I');
+
+INSERT INTO Borrower (Roll_no, Name, DateofIssue, NameofBook, Status)
+VALUES (104, 'Sara Lee', TO_DATE('2024-07-01', 'YYYY-MM-DD'), 'Machine Learning', 'I');
+
+INSERT INTO Borrower (Roll_no, Name, DateofIssue, NameofBook, Status)
+VALUES (105, 'Tom Wilson', TO_DATE('2024-06-30', 'YYYY-MM-DD'), 'Networking Basics', 'I');
+
+DECLARE
+    v_Roll_no        Borrower.Roll_no%TYPE;
+    v_NameofBook     Borrower.NameofBook%TYPE;
+    v_DateofIssue    DATE;
+    v_DaysLate       INTEGER;
+    v_FineAmount     NUMBER := 0;
+    fine_ex          EXCEPTION;
+    v_FineRate       NUMBER;
+    v_Status         CHAR(1);
+BEGIN
+    -- Accept inputs (you can replace the `&Roll_no` and `&NameofBook` with actual values or bind variables)
+    v_Roll_no := &Roll_no;
+    v_NameofBook := '&NameofBook';
+
+    -- Retrieve DateofIssue and Status from Borrower table
+    SELECT DateofIssue, Status INTO v_DateofIssue, v_Status
+    FROM Borrower
+    WHERE Roll_no = v_Roll_no AND NameofBook = v_NameofBook;
+
+    -- Check if the book is already returned
+    IF v_Status = 'R' THEN
+        DBMS_OUTPUT.PUT_LINE('The book has already been returned.');
+    ELSE
+        -- Calculate the number of days since the book was issued
+        v_DaysLate := TRUNC(SYSDATE - v_DateofIssue);
+
+        -- Calculate the fine amount based on the number of late days
+        IF v_DaysLate > 15 AND v_DaysLate <= 30 THEN
+            v_FineRate := 5;
+            v_FineAmount := v_DaysLate * v_FineRate;
+        ELSIF v_DaysLate > 30 THEN
+            v_FineRate := 50;
+            v_FineAmount := v_DaysLate * v_FineRate;
+        ELSE
+            v_FineAmount := 0;
+        END IF;
+
+        -- Update the status to 'R' (Returned) for the book
+        UPDATE Borrower
+        SET Status = 'R'
+        WHERE Roll_no = v_Roll_no AND NameofBook = v_NameofBook;
+
+        -- If fine amount is applicable, insert the fine details into the Fine table
+        IF v_FineAmount > 0 THEN
+            INSERT INTO Fine (Roll_no, Date, Amt)
+            VALUES (v_Roll_no, SYSDATE, v_FineAmount);
+        END IF;
+
+        -- Display fine amount
+        DBMS_OUTPUT.PUT_LINE('Total Fine Amount: ' || v_FineAmount);
+    END IF;
+
+EXCEPTION
+    -- Named exception for when no data is found (invalid Roll_no or Book name)
+    WHEN NO_DATA_FOUND THEN
+        DBMS_OUTPUT.PUT_LINE('Error: No record found for the given Roll number and Book name.');
+
+    -- Custom exception handler for fine-related errors
+    WHEN fine_ex THEN
+        DBMS_OUTPUT.PUT_LINE('Error occurred during fine calculation.');
+
+    -- Generic exception handler for any unexpected errors
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('An unexpected error occurred: ' || SQLERRM);
+END;
+/
+

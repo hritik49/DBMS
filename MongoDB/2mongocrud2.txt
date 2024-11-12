@@ -1,0 +1,59 @@
+db.student.insertMany([
+  { firstName: "Aarav", lastName: "Kumar", gender: "male", class: "TE A", age: 20, city: "Mumbai", state: "MH", grd_point: 32, course: "BSc" },
+  { firstName: "Bhakti", lastName: "Patel", gender: "female", class: "TE B", age: 19, city: "Pune", state: "MH", grd_point: 30, course: "BCA" },
+  { firstName: "Ananya", lastName: "Rao", gender: "female", class: "TE A", age: 18, city: "Bangalore", state: "KA", grd_point: 34, course: "BE" },
+  { firstName: "Rohan", lastName: "Jadhav", gender: "male", class: "TE B", age: 22, city: "Delhi", state: "DL", grd_point: 28, course: "BSc" },
+  { firstName: "Vivek", lastName: "Sharma", gender: "male", class: "TE A", age: 21, city: "Bangalore", state: "KA", grd_point: 33, course: "BCom" },
+  { firstName: "Ria", lastName: "Verma", gender: "female", class: "TE B", age: 20, city: "Chennai", state: "TN", grd_point: 31, course: "BCA" },
+  { firstName: "Ishaan", lastName: "Joshi", gender: "male", class: "TE C", age: 18, city: "Bangalore", state: "KA", grd_point: 27, course: "BBA" },
+  { firstName: "Arya", lastName: "Kapoor", gender: "female", class: "TE A", age: 21, city: "Bangalore", state: "KA", grd_point: 32, course: "BTech" },
+  { firstName: "Karan", lastName: "Gupta", gender: "male", class: "TE B", age: 19, city: "Mumbai", state: "MH", grd_point: 35, course: "BSc" },
+  { firstName: "Maya", lastName: "Iyer", gender: "female", class: "TE C", age: 18, city: "Bangalore", state: "KA", grd_point: 31, course: "BCA" },
+  { firstName: "Riyansh", lastName: "Mehta", gender: "male", class: "TE A", age: 22, city: "Pune", state: "MH", grd_point: 29, course: "BBA" },
+  { firstName: "Evanshika", lastName: "Roy", gender: "female", class: "TE C", age: 17, city: "Delhi", state: "DL", grd_point: 25, course: "BCom" }
+]);
+
+db.student.find({
+  $or: [
+    { gender: "female" },
+    {
+      $and: [
+        { class: "TE B" },
+        { grd_point: { $gte: 31 } }
+      ]
+    }
+  ]
+});
+
+db.student.updateOne(
+  { firstName: "Riyansh" },
+  { $set: { age: 20 } }
+);
+
+db.student.save({
+  lastName: "Soniminde",
+  firstName: "NewName",  // Optional new data fields if you are inserting
+  gender: "female",  // Optional fields
+  class: "TE C",  // Optional fields
+  age: 25,  // Optional fields
+  city: "Nagpur",
+  state: "MH",
+  grd_point: 30,
+  course: "MSc" // Optional fields
+});
+
+db.student.deleteMany({
+  state: "KA"
+});
+
+db.student.deleteOne({
+  firstName: "Evanshika",
+  age: { $lt: 18 }
+});
+
+db.student.find({
+  $nor: [
+    { gender: "female" },
+    { grd_point: { $lt: 30 } }
+  ]
+});

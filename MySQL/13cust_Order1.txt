@@ -1,0 +1,90 @@
+-- Create the `Sales_Representative` table
+CREATE TABLE Sales_Representative (
+    Rep_no INT PRIMARY KEY,
+    Name VARCHAR(50),
+    Re_office VARCHAR(50),
+    Quota DECIMAL(10, 2),
+    Sales DECIMAL(10, 2)
+);
+
+-- Create the `Customers` table
+CREATE TABLE Customers (
+    Cust_No INT PRIMARY KEY,
+    Company VARCHAR(50),
+    Cust_Rep INT,
+    Credit_Limit DECIMAL(10, 2),
+    FOREIGN KEY (Cust_Rep) REFERENCES Sales_Representative(Rep_no)
+);
+
+-- Create the `Orders` table
+CREATE TABLE Orders (
+    Order_no INT PRIMARY KEY,
+    cust INT,
+    product VARCHAR(50),
+    Quantity INT,
+    amount DECIMAL(10, 2),
+    Disc DECIMAL(10, 2),
+    FOREIGN KEY (cust) REFERENCES Customers(Cust_No)
+);
+
+-- Insert data into `Sales_Representative`
+INSERT INTO Sales_Representative (Rep_no, Name, Re_office, Quota, Sales) VALUES
+(101, 'Alice', 'Office1', 50000, 30000),
+(102, 'Bob', 'Office2', 60000, 45000),
+(103, 'Charlie', 'Office1', 40000, 25000),
+(104, 'Diana', 'Office3', 55000, 35000),
+(105, 'Eve', 'Office2', 65000, 50000);
+
+-- Insert data into `Customers`
+INSERT INTO Customers (Cust_No, Company, Cust_Rep, Credit_Limit) VALUES
+(1, 'TCS', 101, 80000),
+(2, 'Infosys', 102, 70000),
+(3, 'Wipro', 103, 60000),
+(4, 'Accenture', 104, 75000),
+(5, 'Cognizant', 105, 90000);
+
+-- Insert data into `Orders`
+INSERT INTO Orders (Order_no, cust, product, Quantity, amount, Disc) VALUES
+(201, 1, 'Laptops', 50, 30000, 2000),
+(202, 2, 'Servers', 20, 25000, 1500),
+(203, 3, 'Printers', 30, 20000, 1000),
+(204, 4, 'Desktops', 10, 35000, 2500),
+(205, 5, 'Monitors', 40, 40000, 3000);
+
+-- List for each customer - customer name, their rep’s name, their rep’s office number.
+SELECT Customers.Company AS customer_name, Sales_Representative.Name AS rep_name, Sales_Representative.Re_office AS rep_office
+FROM Customers
+JOIN Sales_Representative ON Customers.Cust_Rep = Sales_Representative.Rep_no;
+
+-- List orders over $25,000, including the name of the salesperson who took the order and the name of the customer who placed it.
+SELECT Orders.Order_no, Orders.amount, Customers.Company AS customer_name, Sales_Representative.Name AS salesperson_name
+FROM Orders
+JOIN Customers ON Orders.cust = Customers.Cust_No
+JOIN Sales_Representative ON Customers.Cust_Rep = Sales_Representative.Rep_no
+WHERE Orders.amount > 25000;
+
+-- Find the products that have been sold to TCS.
+SELECT product FROM Orders
+JOIN Customers ON Orders.cust = Customers.Cust_No
+WHERE Customers.Company = 'TCS';
+
+-- Find the company which has been offered the maximum discount.
+SELECT Customers.Company, MAX(Orders.Disc) AS max_discount
+FROM Orders
+JOIN Customers ON Orders.cust = Customers.Cust_No
+GROUP BY Customers.Company
+ORDER BY max_discount DESC
+LIMIT 1;
+
+-- Find the sales representatives who work in the same office.
+SELECT Name, Re_office
+FROM Sales_Representative
+GROUP BY Re_office
+HAVING COUNT(*) > 1;
+
+-- Find the credit limit of the company and the discount it has received.
+SELECT Customers.Company, Customers.Credit_Limit, SUM(Orders.Disc) AS total_discount
+FROM Customers
+JOIN Orders ON Customers.Cust_No = Orders.cust
+GROUP BY Customers.Company, Customers.Credit_Limit;
+

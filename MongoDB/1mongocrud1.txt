@@ -1,0 +1,59 @@
+db.student.insertMany([
+  { firstName: "Aarav", lastName: "Kumar", gender: "male", class: "TE A", age: 20, city: "Mumbai", grd_point: 32, course: "BSc" },
+  { firstName: "Bhakti", lastName: "Patel", gender: "female", class: "TE B", age: 19, city: "Pune", grd_point: 30, course: "BCA" },
+  { firstName: "Ananya", lastName: "Rao", gender: "female", class: "TE A", age: 18, city: "Bangalore", grd_point: 34, course: "BE" },
+  { firstName: "Rohan", lastName: "Jadhav", gender: "male", class: "TE B", age: 22, city: "Delhi", grd_point: 28, course: "BSc" },
+  { firstName: "Vivek", lastName: "Sharma", gender: "male", class: "TE A", age: 21, city: "Bangalore", grd_point: 33, course: "BCom" },
+  { firstName: "Ria", lastName: "Verma", gender: "female", class: "TE A", age: 20, city: "Chennai", grd_point: 29, course: "BCA" },
+  { firstName: "Ishaan", lastName: "Joshi", gender: "male", class: "TE C", age: 18, city: "Bangalore", grd_point: 27, course: "BBA" },
+  { firstName: "Arya", lastName: "Kapoor", gender: "female", class: "TE A", age: 21, city: "Bangalore", grd_point: 32, course: "BTech" },
+  { firstName: "Karan", lastName: "Gupta", gender: "male", class: "TE B", age: 19, city: "Mumbai", grd_point: 35, course: "BSc" },
+  { firstName: "Maya", lastName: "Iyer", gender: "female", class: "TE C", age: 18, city: "Bangalore", grd_point: 31, course: "BCA" }
+]);
+
+db.student.find({
+  $or: [
+    { gender: "male" },
+    { class: "TE A" },
+    { grd_point: { $gte: 31 } }
+  ]
+});
+
+db.student.find({
+  city: "Bangalore",
+  age: { $lte: 19 }
+});
+
+db.student.updateOne(
+  { firstName: "Bhakti" },
+  { $set: { course: "MCA" } }
+);
+
+db.student.deleteOne({
+  age: 18,
+  gender: "male"
+});
+
+db.student.deleteOne({
+  lastName: "Jadhav",
+  class: "TE B"
+});
+
+db.student.find({
+  $nor: [
+    { gender: "female" },
+    { grd_point: { $lt: 30 } }
+  ]
+});
+
+db.student.save({
+  _id: ObjectId("existing_document_id"), // Replace with an actual _id if updating
+  firstName: "UpdatedName",
+  lastName: "UpdatedLastName",
+  gender: "female",
+  class: "UpdatedClass",
+  age: 22,
+  city: "New City",
+  grd_point: 40,
+  course: "UpdatedCourse"
+});

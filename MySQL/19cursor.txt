@@ -1,0 +1,62 @@
+-- 1. Create example tables (for demonstration, if not already present)
+-- Drop tables if they already exist
+DROP TABLE IF EXISTS N_RollCall;
+DROP TABLE IF EXISTS O_RollCall;
+
+-- Create the N_RollCall table
+CREATE TABLE N_RollCall (
+    RollNo INT PRIMARY KEY,
+    StudentName VARCHAR2(100),
+    AttendanceStatus VARCHAR2(20)
+);
+
+-- Create the O_RollCall table
+CREATE TABLE O_RollCall (
+    RollNo INT PRIMARY KEY,
+    StudentName VARCHAR2(100),
+    AttendanceStatus VARCHAR2(20)
+);
+
+-- 2. Insert sample data into N_RollCall (optional, for testing purposes)
+INSERT INTO N_RollCall (RollNo, StudentName, AttendanceStatus) VALUES (1, 'John Doe', 'Present');
+INSERT INTO N_RollCall (RollNo, StudentName, AttendanceStatus) VALUES (2, 'Jane Smith', 'Absent');
+INSERT INTO N_RollCall (RollNo, StudentName, AttendanceStatus) VALUES (3, 'Alice Johnson', 'Present');
+
+-- Insert sample data into O_RollCall (optional)
+INSERT INTO O_RollCall (RollNo, StudentName, AttendanceStatus) VALUES (1, 'John Doe', 'Present'); -- Duplicate to test skipping
+
+COMMIT;
+
+-- 3. PL/SQL Block using a Parameterized Cursor
+DECLARE
+    -- Parameterized cursor to select data from N_RollCall
+    CURSOR rollcall_cursor(p_rollno INT) IS
+        SELECT RollNo, StudentName, AttendanceStatus
+        FROM N_RollCall
+        WHERE RollNo = p_rollno;
+
+    v_rollno N_RollCall.RollNo%TYPE;
+    v_studentname N_RollCall.StudentName%TYPE;
+    v_attendance N_RollCall.AttendanceStatus%TYPE;
+
+BEGIN
+    -- Iterate over all rows in N_RollCall
+    FOR rec IN (SELECT * FROM N_RollCall) LOOP
+        -- Open the parameterized cursor for the current RollNo
+        OPEN rollcall_cursor(rec.RollNo);
+        FETCH rollcall_cursor INTO v_rollno, v_studentname, v_attendance;
+        CLOSE rollcall_cursor;
+
+        -- Check if the data already exists in O_RollCall
+        IF NOT EXISTS (
+            SELECT 1 FROM O_RollCall WHERE RollNo = v_rollno
+        ) THEN
+            -- Insert data into O_RollCall if it doesn't exist
+            INSERT INTO O_RollCall (RollNo, StudentName, AttendanceStatus)
+            VALUES (v_rollno, v_studentname, v_attendance);
+        END IF;
+    END LOOP;
+
+    COMMIT;
+END;
+/

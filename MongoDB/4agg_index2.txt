@@ -1,0 +1,46 @@
+db.student.insertMany([
+  { Rollno: 1, Name: "John Doe", Class: "12A", Div: "A", Subject: "DS", Marks: 85, Address: { City: "CityX", Street: "123 Main St" } },
+  { Rollno: 2, Name: "Jane Smith", Class: "12B", Div: "B", Subject: "DS", Marks: 78, Address: { City: "CityX", Street: "456 Side St" } },
+  { Rollno: 3, Name: "Sam Johnson", Class: "11A", Div: "A", Subject: "Maths", Marks: 90, Address: { City: "CityY", Street: "789 Lane" } },
+  { Rollno: 4, Name: "Alice Brown", Class: "12A", Div: "A", Subject: "DS", Marks: 88, Address: { City: "CityX", Street: "101 Avenue" } },
+  { Rollno: 5, Name: "Bob White", Class: "11B", Div: "B", Subject: "Physics", Marks: 70, Address: { City: "CityY", Street: "202 Circle" } },
+  { Rollno: 6, Name: "Eve Green", Class: "12A", Div: "A", Subject: "DS", Marks: 82, Address: { City: "CityX", Street: "303 Square" } }
+]);
+
+db.student.aggregate([
+  { $match: { Subject: "DS", "Address.City": "CityX" } },
+  { $group: { _id: null, maxMarks: { $max: "$Marks" } } }
+]);
+
+db.student.aggregate([
+  { $group: { _id: null, avgMarks: { $avg: "$Marks" } } }
+]);
+
+db.student.updateMany(
+  {},
+  { $set: { Grades: [] } } // Initializing an empty array if it doesn't exist
+);
+
+db.student.aggregate([
+  {
+    $addFields: {
+      Grades: {
+        $concatArrays: ["$Grades", [{ $cond: [{ $gte: ["$Marks", 80] }, "A", "B"] }]]
+      }
+    }
+  }
+]);
+
+// Creating a simple index on "Name"
+db.student.createIndex({ Name: 1 });
+
+// Creating a compound index on "Name" and "Class"
+db.student.createIndex({ Name: 1, Class: 1 });
+
+db.student.dropIndex({ Name: 1 });
+
+db.student.aggregate([
+  { $match: { Subject: "DS" } },
+  { $group: { _id: "$Class", avgMarks: { $avg: "$Marks" } } },
+  { $sort: { avgMarks: -1 } }
+]);

@@ -1,0 +1,58 @@
+-- 1. Create the database
+CREATE DATABASE IF NOT EXISTS student_grading;
+USE student_grading;
+
+-- 2. Create a table to store student data (optional, for testing purpose)
+CREATE TABLE IF NOT EXISTS Students (
+    Student_ID INT PRIMARY KEY AUTO_INCREMENT,
+    Student_Name VARCHAR(100),
+    Marks INT
+);
+
+-- 3. Insert sample data into the Students table
+INSERT INTO Students (Student_Name, Marks) VALUES
+('John Doe', 1450),
+('Jane Smith', 970),
+('Alice Johnson', 880),
+('Bob Brown', 830),
+('Charlie White', 750);
+
+-- 4. Create the stored procedure `proc_Grade`
+DELIMITER $$
+
+CREATE PROCEDURE proc_Grade(IN student_marks INT, OUT category VARCHAR(50))
+BEGIN
+    IF student_marks >= 990 AND student_marks <= 1500 THEN
+        SET category = 'Distinction';
+    ELSEIF student_marks >= 900 AND student_marks <= 989 THEN
+        SET category = 'First Class';
+    ELSEIF student_marks >= 825 AND student_marks <= 899 THEN
+        SET category = 'Higher Second Class';
+    ELSE
+        SET category = 'No Grade Assigned';
+    END IF;
+END$$
+
+DELIMITER ;
+
+-- 5. Example usage of the stored procedure
+-- Declare input and output variables
+SET @student_marks = 960; -- Example marks (change this value to test different cases)
+CALL proc_Grade(@student_marks, @student_category); -- Call the procedure
+SELECT @student_marks AS Marks, @student_category AS Grade_Category; -- Display the result
+
+-- 6. Test using data from the Students table
+SELECT Student_ID, Student_Name, Marks FROM Students;
+
+-- 7. Use the procedure to categorize each student in the table (optional)
+SELECT 
+    Student_ID, 
+    Student_Name, 
+    Marks,
+    (CASE 
+        WHEN Marks >= 990 AND Marks <= 1500 THEN 'Distinction'
+        WHEN Marks >= 900 AND Marks <= 989 THEN 'First Class'
+        WHEN Marks >= 825 AND Marks <= 899 THEN 'Higher Second Class'
+        ELSE 'No Grade Assigned'
+    END) AS Grade_Category
+FROM Students;

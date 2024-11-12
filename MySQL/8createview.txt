@@ -1,0 +1,52 @@
+-- Create Dept Table
+CREATE TABLE Dept (
+    DeptID INT PRIMARY KEY,
+    DeptName VARCHAR(50)
+);
+
+-- Create Emp Table with constraints
+CREATE TABLE Emp (
+    EmpID INT PRIMARY KEY,
+    EmpName VARCHAR(50),
+    DeptID INT,
+    Salary DECIMAL(10, 2),
+    FOREIGN KEY (DeptID) REFERENCES Dept(DeptID)
+);
+
+-- Creating a Simple View for employees in a specific department
+CREATE VIEW EmpView AS
+SELECT EmpID, EmpName, Salary
+FROM Emp
+WHERE DeptID = 1;
+
+-- Creating an Updatable View
+CREATE VIEW DeptView AS
+SELECT DeptID, DeptName
+FROM Dept
+WHERE DeptName LIKE 'Sales%';
+
+-- Insert values into Dept Table
+INSERT INTO Dept (DeptID, DeptName) VALUES (1, 'Sales'), (2, 'HR'), (3, 'IT'), (4, 'Finance'), (5, 'Admin');
+
+-- Insert values into Emp Table
+INSERT INTO Emp (EmpID, EmpName, DeptID, Salary)
+VALUES
+    (101, 'Alice', 1, 50000),
+    (102, 'Bob', 1, 60000),
+    (103, 'Charlie', 2, 55000),
+    (104, 'Daisy', 3, 70000),
+    (105, 'Eve', 4, 80000);
+
+-- Update a record through view
+UPDATE EmpView SET Salary = 55000 WHERE EmpID = 101;
+
+-- Delete a record through view
+DELETE FROM EmpView WHERE EmpID = 102;
+
+--Creating a Index on Dept Table called EmployeeId
+CREATE INDEX EmployeeId ON Dept (DeptID ASC, DeptName ASC);
+
+-- Adding Auto Increment to EmpID (acts like a sequence)
+ALTER TABLE Emp MODIFY EmpID INT AUTO_INCREMENT;
+
+DROP INDEX EmployeeId ON Dept;
